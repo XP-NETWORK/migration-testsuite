@@ -13,6 +13,7 @@ class Config:
         self.validator: Final = ValidatorConfig(parser["VALIDATOR"])
         self.polkadot: Final = PolkadotConfig(parser["POLKADOT"])
         self.elrond: Final = ElrondConfig(parser["ELROND"])
+        self.web3: Final = Web3Config(parser["WEB3"])
 
 
 class ValidatorConfig:
@@ -37,8 +38,15 @@ class ElrondConfig:
         self.project: Final = abspath(str(parser["MINT_PROJECT"]))
 
 
+class Web3Config:
+    def __init__(self, parser: SectionProxy):
+        self.uri: Final = str(parser["NODE_URI"])
+        self.sender: Final = str(parser["SENDER_PK"])
+        self.project: Final = abspath(str(parser["MINT_PROJECT"]))
+
+
 @dataclass
-class ValidatorRuntimeConfig:
+class ElrondValidatorRuntimeConfig:
     xnode: Final[str] = field(metadata={"required": True})
     elrond_node: Final[str] = field(metadata={"required": True})
     private_key: Final[str] = field(metadata={"required": True})
@@ -46,3 +54,12 @@ class ValidatorRuntimeConfig:
     elrond_minter: Final[str] = field(metadata={"required": True})
     xp_freezer: Final[str] = field(metadata={"required": True})
     elrond_ev_socket: Final[str] = field(metadata={"required": True})
+
+
+@dataclass
+class Web3ValidatorRuntimeConfig:
+    xnode: Final[str] = field(metadata={"required": True})
+    w3_node: Final[str] = field(metadata={"required": True})
+    w3_pk: Final[str] = field(metadata={"required": True})
+    w3_minter: Final[str] = field(metadata={"required": True})
+    xp_freezer: Final[str] = field(metadata={"required": True})

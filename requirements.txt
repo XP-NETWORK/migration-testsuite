@@ -2,5 +2,8 @@ mypy
 flake8
 erdpy
 requests
+types-requests
 substrate-interface
 stdiomask
+web3
+eth-account

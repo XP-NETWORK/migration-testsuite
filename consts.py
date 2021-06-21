@@ -24,3 +24,7 @@ ELROND_TX_URI = "{proxy}/transaction/{tx}?withResults=true"
 ELROND_ESDT_BAL_URI = "{proxy}/address/{addr}/esdt/{token}"
 ELROND_CONTRACT_ARGS = "0x{esdt} 1 0x{sender}"
 ELROND_SETROLE_DATA = "setSpecialRole@{esdt}@{sc_addr}@45534454526F6C654C6F63616C4D696E74@45534454526F6C654C6F63616C4275726E"  # noqa: E501
+
+# Web3 stuff
+WEB3_MINTER_JSON = "{project}/artifacts/contracts/Minter.sol/Minter.json"
+WEB3_XPNET_JSON = "{project}/artifacts/contracts/XPNet.sol/XPNet.json"

@@ -29,13 +29,13 @@ class PolkadotHelper:
         self.sender = Keypair.create_from_uri(consts.ALICE_URI)
 
     @classmethod
-    def setup(cls, config: PolkadotConfig) -> PolkadotHelper:
+    def setup(cls, config: PolkadotConfig, freezer_abi: str) -> PolkadotHelper:
         print("Polkadot setup")
 
         polka = cls(config.uri, config.freezer_project, config.erc20_project)
 
         print(f"deployed erc20: {polka.deploy_erc20()}")
-        print(f"deployed contract: {polka.deploy_sc()}")
+        print(f"deployed contract: {polka.deploy_sc(freezer_abi)}")
 
         print(f"sending coins to validator: {config.validator}")
         call = polka.substrate.compose_call(
@@ -100,7 +100,7 @@ class PolkadotHelper:
 
         return str(self.erc20.contract_address)
 
-    def deploy_sc(self) -> str:
+    def deploy_sc(self, abi: str) -> str:
         subprocess.run(
             ["cargo", "+nightly", "contract", "build"],
             check=True,
@@ -112,7 +112,7 @@ class PolkadotHelper:
         ))
         code = ContractCode.create_from_contract_files(
             wasm_file=list(target.glob("*.wasm"))[0].as_posix(),
-            metadata_file="./workaround.json",
+            metadata_file=abi,
             substrate=self.substrate
         )
 

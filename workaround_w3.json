@@ -1,0 +1,705 @@
+{
+  "metadataVersion": "0.1.0",
+  "source": {
+    "hash": "0x47d7219d8934df25cf913fded27dd5f5910a29143747b43f3c302443eff51613",
+    "language": "ink! 3.0.0-rc3",
+    "compiler": "rustc 1.54.0-nightly"
+  },
+  "contract": {
+    "name": "freezer",
+    "version": "0.1.0",
+    "authors": [
+      "[your_name] <[your_email]>"
+    ]
+  },
+  "spec": {
+    "constructors": [
+      {
+        "args": [
+          {
+            "name": "erc20_addr",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 4
+            }
+          }
+        ],
+        "docs": [],
+        "name": [
+          "new"
+        ],
+        "selector": "0x9bae9d5e"
+      }
+    ],
+    "docs": [],
+    "events": [
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "action_id",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 15
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "to",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 15
+            }
+          }
+        ],
+        "docs": [
+          " Transfer to elrond chain event",
+          " validators must subscribe to this"
+        ],
+        "name": "Transfer"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "action_id",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 15
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "to",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "endpoint",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "args",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 19
+            }
+          }
+        ],
+        "docs": [],
+        "name": "ScCall"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "action_id",
+            "type": {
+              "displayName": [
+                "u128"
+              ],
+              "type": 15
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "to",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "name": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 15
+            }
+          }
+        ],
+        "docs": [],
+        "name": "UnfreezeWrap"
+      }
+    ],
+    "messages": [
+      {
+        "args": [
+          {
+            "name": "to",
+            "type": {
+              "displayName": [],
+              "type": 18
+            }
+          }
+        ],
+        "docs": [
+          " Emit a transfer event while locking",
+          " existing coins"
+        ],
+        "mutates": true,
+        "name": [
+          "send"
+        ],
+        "payable": true,
+        "returnType": null,
+        "selector": "0xe6faf2c0"
+      },
+      {
+        "args": [
+          {
+            "name": "to",
+            "type": {
+              "displayName": [],
+              "type": 18
+            }
+          },
+          {
+            "name": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 15
+            }
+          }
+        ],
+        "docs": [
+          " Burn erc20 token & emit event"
+        ],
+        "mutates": true,
+        "name": [
+          "withdraw_wrapper"
+        ],
+        "payable": false,
+        "returnType": null,
+        "selector": "0x8cc357e0"
+      },
+      {
+        "args": [
+          {
+            "name": "action_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "name": "to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "name": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 15
+            }
+          }
+        ],
+        "docs": [
+          " unfreeze tokens and send them to an address",
+          " only validators can call this"
+        ],
+        "mutates": true,
+        "name": [
+          "pop"
+        ],
+        "payable": false,
+        "returnType": null,
+        "selector": "0x5dbd4378"
+      },
+      {
+        "args": [
+          {
+            "name": "action_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "name": "to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "name": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 15
+            }
+          },
+          {
+            "name": "endpoint",
+            "type": {
+              "displayName": [],
+              "type": 16
+            }
+          },
+          {
+            "name": "args",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 17
+            }
+          }
+        ],
+        "docs": [],
+        "mutates": true,
+        "name": [
+          "sc_call_verify"
+        ],
+        "payable": false,
+        "returnType": null,
+        "selector": "0x845f21ef"
+      },
+      {
+        "args": [
+          {
+            "name": "action_id",
+            "type": {
+              "displayName": [
+                "String"
+              ],
+              "type": 11
+            }
+          },
+          {
+            "name": "to",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 4
+            }
+          },
+          {
+            "name": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 15
+            }
+          }
+        ],
+        "docs": [],
+        "mutates": true,
+        "name": [
+          "send_wrapper_verify"
+        ],
+        "payable": false,
+        "returnType": null,
+        "selector": "0x5ea1a574"
+      },
+      {
+        "args": [],
+        "docs": [
+          " Subscribe to events & become a validator",
+          " Placeholder for now",
+          " TODO: Proper implementation"
+        ],
+        "mutates": true,
+        "name": [
+          "subscribe"
+        ],
+        "payable": false,
+        "returnType": null,
+        "selector": "0xfb968a8f"
+      },
+      {
+        "args": [],
+        "docs": [
+          " Number of validators",
+          " only for debugging"
+        ],
+        "mutates": false,
+        "name": [
+          "validator_cnt"
+        ],
+        "payable": false,
+        "returnType": {
+          "displayName": [
+            "u32"
+          ],
+          "type": 2
+        },
+        "selector": "0xa86d00ff"
+      }
+    ]
+  },
+  "storage": {},
+  "types": [
+    {
+      "def": {
+        "composite": {
+          "fields": [
+            {
+              "name": "last_vacant",
+              "type": 2,
+              "typeName": "Index"
+            },
+            {
+              "name": "len",
+              "type": 2,
+              "typeName": "u32"
+            },
+            {
+              "name": "len_entries",
+              "type": 2,
+              "typeName": "u32"
+            }
+          ]
+        }
+      },
+      "path": [
+        "ink_storage",
+        "collections",
+        "stash",
+        "Header"
+      ]
+    },
+    {
+      "def": {
+        "primitive": "u32"
+      }
+    },
+    {
+      "def": {
+        "variant": {
+          "variants": [
+            {
+              "fields": [
+                {
+                  "type": 7,
+                  "typeName": "VacantEntry"
+                }
+              ],
+              "name": "Vacant"
+            },
+            {
+              "fields": [
+                {
+                  "type": 4,
+                  "typeName": "T"
+                }
+              ],
+              "name": "Occupied"
+            }
+          ]
+        }
+      },
+      "params": [
+        4
+      ],
+      "path": [
+        "ink_storage",
+        "collections",
+        "stash",
+        "Entry"
+      ]
+    },
+    {
+      "def": {
+        "composite": {
+          "fields": [
+            {
+              "type": 5,
+              "typeName": "[u8; 32]"
+            }
+          ]
+        }
+      },
+      "path": [
+        "ink_env",
+        "types",
+        "AccountId"
+      ]
+    },
+    {
+      "def": {
+        "array": {
+          "len": 32,
+          "type": 6
+        }
+      }
+    },
+    {
+      "def": {
+        "primitive": "u8"
+      }
+    },
+    {
+      "def": {
+        "composite": {
+          "fields": [
+            {
+              "name": "next",
+              "type": 2,
+              "typeName": "Index"
+            },
+            {
+              "name": "prev",
+              "type": 2,
+              "typeName": "Index"
+            }
+          ]
+        }
+      },
+      "path": [
+        "ink_storage",
+        "collections",
+        "stash",
+        "VacantEntry"
+      ]
+    },
+    {
+      "def": {
+        "composite": {
+          "fields": [
+            {
+              "name": "value",
+              "type": 9,
+              "typeName": "V"
+            },
+            {
+              "name": "key_index",
+              "type": 2,
+              "typeName": "KeyIndex"
+            }
+          ]
+        }
+      },
+      "params": [
+        9
+      ],
+      "path": [
+        "ink_storage",
+        "collections",
+        "hashmap",
+        "ValueEntry"
+      ]
+    },
+    {
+      "def": {
+        "tuple": []
+      }
+    },
+    {
+      "def": {
+        "variant": {
+          "variants": [
+            {
+              "fields": [
+                {
+                  "type": 7,
+                  "typeName": "VacantEntry"
+                }
+              ],
+              "name": "Vacant"
+            },
+            {
+              "fields": [
+                {
+                  "type": 11,
+                  "typeName": "T"
+                }
+              ],
+              "name": "Occupied"
+            }
+          ]
+        }
+      },
+      "params": [
+        11
+      ],
+      "path": [
+        "ink_storage",
+        "collections",
+        "stash",
+        "Entry"
+      ]
+    },
+    {
+      "def": {
+        "primitive": "str"
+      }
+    },
+    {
+      "def": {
+        "composite": {
+          "fields": [
+            {
+              "name": "value",
+              "type": 13,
+              "typeName": "V"
+            },
+            {
+              "name": "key_index",
+              "type": 2,
+              "typeName": "KeyIndex"
+            }
+          ]
+        }
+      },
+      "params": [
+        13
+      ],
+      "path": [
+        "ink_storage",
+        "collections",
+        "hashmap",
+        "ValueEntry"
+      ]
+    },
+    {
+      "def": {
+        "composite": {
+          "fields": [
+            {
+              "name": "action",
+              "type": 14,
+              "typeName": "Action"
+            },
+            {
+              "name": "validators",
+              "type": 2,
+              "typeName": "u32"
+            }
+          ]
+        }
+      },
+      "path": [
+        "freezer",
+        "freezer",
+        "ActionInfo"
+      ]
+    },
+    {
+      "def": {
+        "primitive": "u128"
+      }
+    },
+    {
+      "def": {
+        "primitive": "u128"
+      }
+    },
+    {
+      "def": {
+        "array": {
+          "len": 4,
+          "type": 6
+        }
+      }
+    },
+    {
+      "def": {
+        "variant": {
+          "variants": [
+            {
+              "name": "None"
+            },
+            {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "T"
+                }
+              ],
+              "name": "Some"
+            }
+          ]
+        }
+      },
+      "params": [
+        2
+      ],
+      "path": [
+        "Option"
+      ]
+    },
+    {
+      "def": {
+        "array": {
+          "len": 20,
+          "type": 6
+        }
+      }
+    },
+    {
+      "def": {
+        "primitive": "u128"
+      }
+    },
+    {
+      "def": {
+		  "primitive": "u128"
+      }
+    }
+  ]
+}

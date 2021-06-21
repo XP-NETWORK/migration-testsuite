@@ -94,3 +94,17 @@ def liquidity_test(polka: PolkadotHelper, elrd: ElrondHelper) -> None:
 
     print("Unfreeze Test (Elrond(XPNET Wrapper) -> Polkadot)")
     liquidity_e2p(elrd)
+
+
+def elrd_tests(polka: PolkadotHelper, elrd: ElrondHelper) -> None:
+    print("""Available Tests:
+1. Liquidity (Polkadot Units -> Elrond)
+2. EGLD (Elrond EGOLD -> Polkadot)""")
+
+    choice = input("Select test: ")
+    if choice == "1":
+        liquidity_test(polka, elrd)
+    elif choice == "2":
+        egld_test(elrd, polka)
+    else:
+        print("Invalid choice!")
