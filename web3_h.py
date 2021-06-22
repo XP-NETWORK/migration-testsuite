@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import Any, Type, cast
+from typing import Any, Type
 from eth_account.account import Account, LocalAccount
 from eth_typing.evm import ChecksumAddress
 
 from web3.contract import Contract
-from web3.types import TxParams, TxReceipt
+from web3.types import TxParams, TxReceipt, Wei
 
 import consts
 import json
@@ -66,18 +66,21 @@ class Web3Helper:
             abi=abi
         )
 
-    def send_tx(self, tx: TxParams) -> TxReceipt:
+    def send_tx_i(self, sender: LocalAccount, tx: TxParams) -> TxReceipt:
         tx["nonce"] = self.w3.eth.get_transaction_count(
-            self.sender.address
+            sender.address
         )
 
         signed = self.w3.eth.account.sign_transaction(
-            tx, private_key=self.sender.key
+            tx, private_key=sender.key
         )
 
         hs = self.w3.eth.send_raw_transaction(signed.rawTransaction)
 
         return self.w3.eth.wait_for_transaction_receipt(hs)
+
+    def send_tx(self, tx: TxParams) -> TxReceipt:
+        return self.send_tx_i(self.sender, tx)
 
     def deploy_erc20(self) -> str:
         contract = Path(consts.WEB3_XPNET_JSON.format(
@@ -112,3 +115,28 @@ class Web3Helper:
                 addr
             ).call()
         )
+
+    def withdraw_tokens(
+        self,
+        sender: LocalAccount,
+        destination: str,
+        value: int
+    ) -> TxReceipt:
+        call = self.minter.functions.withdraw(
+            destination, value=value
+        ).buildTransaction()
+
+        return self.send_tx_i(sender, call)
+
+    def freeze_ht(
+        self,
+        sender: LocalAccount,
+        destination: str,
+        value: int
+    ) -> TxReceipt:
+        params = TxParams(value=Wei(value))
+        call = self.minter.functions.freeze(
+            destination,
+        ).buildTransaction(params)
+
+        return self.send_tx_i(sender, call)
