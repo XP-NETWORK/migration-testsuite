@@ -14,6 +14,7 @@ class Config:
         self.polkadot: Final = PolkadotConfig(parser["POLKADOT"])
         self.elrond: Final = ElrondConfig(parser["ELROND"])
         self.web3: Final = Web3Config(parser["WEB3"])
+        self.rest: Final = RestConfig(parser["REST"])
 
 
 class ValidatorConfig:
@@ -43,6 +44,11 @@ class Web3Config:
         self.uri: Final = str(parser["NODE_URI"])
         self.sender: Final = str(parser["SENDER_PK"])
         self.project: Final = abspath(str(parser["MINT_PROJECT"]))
+
+
+class RestConfig:
+    def __init__(self, parser: SectionProxy):
+        self.chain = str(parser["CHAIN"])
 
 
 @dataclass

@@ -136,16 +136,21 @@ class PolkadotHelper:
 
         return str(self.contract.contract_address)
 
-    def send_tokens(self, to: str, value: int) -> ContractExecutionReceipt:
+    def send_tokens(
+        self,
+        sender: Keypair,
+        to: str,
+        value: int
+    ) -> ContractExecutionReceipt:
         dry = self.contract.read(
-            self.sender,
+            sender,
             consts.FREEZER_SEND_CALL,
             args={'to': to},
             value=value
         )
 
         return self.contract.exec(
-            self.sender,
+            sender,
             consts.FREEZER_SEND_CALL,
             args={'to': to},
             value=value,

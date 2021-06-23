@@ -26,7 +26,7 @@ def liquidity_p2w3(polka: PolkadotHelper, w3: Web3Helper) -> None:
     dest_check_addr = Web3.toChecksumAddress(destination)
     cur_b = w3.erc20_check_bal(dest_check_addr)
     print(f"{destination} current balance: {cur_b}")
-    assert(polka.send_tokens(destination, value).is_success)
+    assert(polka.send_tokens(polka.sender, destination, value).is_success)
 
     target = cur_b + value
     wait_erc20_bal_added(w3, dest_check_addr, target)

@@ -7,3 +7,4 @@ substrate-interface
 stdiomask
 web3
 eth-account
+fastapi>=0.65.0,<0.66

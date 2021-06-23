@@ -2,10 +2,12 @@ from __future__ import annotations
 from config import ElrondConfig
 from erdpy.interfaces import IElrondProxy
 import consts.elrond as consts
+import base64
 import time
+import itertools
 import requests
 
-from typing import Any, Optional, cast
+from typing import Any, Optional, Tuple, cast
 
 from erdpy import config
 from erdpy.proxy import ElrondProxy
@@ -13,6 +15,34 @@ from erdpy.accounts import Account, Address
 from erdpy.contracts import SmartContract
 from erdpy.projects import ProjectRust
 from erdpy.transactions import Transaction
+
+
+# https://github.com/ElrondNetwork/elrond-sdk/blob/master/erdpy/wallet/pem.py#L16
+def parse_pem(pem_data: str) -> Tuple[bytes, bytes]:
+    lines = pem_data.splitlines()
+    keys_lines = [list(key_lines) for is_next_key, key_lines in
+                  itertools.groupby(lines, lambda line: "-----" in line)
+                  if not is_next_key]
+
+    keys = ["".join(key_lines) for key_lines in keys_lines]
+
+    key_base64 = keys[0]
+    key_hex = base64.b64decode(key_base64).decode()
+    key_bytes = bytes.fromhex(key_hex)
+
+    seed = key_bytes[:32]
+    pubkey = key_bytes[32:]
+    return seed, pubkey
+
+
+# https://github.com/ElrondNetwork/elrond-sdk/blob/master/erdpy/accounts.py#L54-L56
+def account(pem_data: str) -> Account:
+    acc = Account()
+    seed, pub = parse_pem(pem_data)
+    acc.private_key_seed = seed.hex()
+    acc.address = Address(pub)
+
+    return acc
 
 
 class ElrondHelper:

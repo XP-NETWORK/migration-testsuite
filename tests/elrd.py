@@ -13,7 +13,7 @@ def liquidity_p2e(polka: PolkadotHelper, elrd: ElrondHelper) -> None:
 
     cur_b = elrd.check_esdt_bal(destination)
     print(f"{destination} current balance: {cur_b}")
-    assert(polka.send_tokens(destination, value).is_success)
+    assert(polka.send_tokens(polka.sender, destination, value).is_success)
 
     if target := elrd.wait_esdt_bal_added(destination, value):
         print(f"{destination} new balance: {target}")
@@ -77,7 +77,7 @@ def egld_p2e(polka: PolkadotHelper) -> None:
 
 
 def egld_test(elrd: ElrondHelper, polka: PolkadotHelper) -> None:
-    print("Send test (Elrond(EGLD) -> Polkadot)")
+    print("Send test (Elrond(EGLD) ->: Polkadot)")
     egld_e2p(elrd)
 
     input("Press enter to continue\n")
