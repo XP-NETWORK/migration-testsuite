@@ -3,8 +3,8 @@ import requests
 import stdiomask
 from substrateinterface.base import Keypair
 
-from polkadot import PolkadotHelper
-from elrond import ElrondHelper
+from chains.polkadot import PolkadotHelper
+from chains.elrond import ElrondHelper
 
 
 def liquidity_p2e(polka: PolkadotHelper, elrd: ElrondHelper) -> None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from config import ElrondConfig
 from erdpy.interfaces import IElrondProxy
-import consts
+import consts.elrond as consts
 import time
 import requests
 
@@ -53,7 +53,7 @@ class ElrondHelper:
 
     def wait_transaction_done(self, tx_hash: str) -> Any:
         time.sleep(3)
-        uri = consts.ELROND_TX_URI.format(proxy=self.proxy_uri, tx=tx_hash)
+        uri = consts.TX_URI.format(proxy=self.proxy_uri, tx=tx_hash)
         while data := requests.get(uri):
             res = data.json()
             if res["code"] != "successful":
@@ -72,12 +72,12 @@ class ElrondHelper:
 
     def prepare_esdt(self) -> str:
         tx = Transaction()
-        tx.value = str(consts.ELROND_ESDT_VALUE)
+        tx.value = str(consts.ESDT_VALUE)
         tx.sender = self.sender.address.bech32()
-        tx.receiver = consts.ELROND_ESDT_SC_ADDR
-        tx.gasPrice = consts.ELROND_GAS_PRICE
-        tx.gasLimit = consts.ELROND_ESDT_GASL
-        tx.data = consts.ELROND_ESDT_ISSUE_DATA
+        tx.receiver = consts.ESDT_SC_ADDR
+        tx.gasPrice = consts.GAS_PRICE
+        tx.gasLimit = consts.ESDT_GASL
+        tx.data = consts.ESDT_ISSUE_DATA
         tx.chainID = str(self.proxy.get_chain_id())
         tx.version = config.get_tx_version()
 
@@ -87,7 +87,7 @@ class ElrondHelper:
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
         for res in self.wait_transaction_done(tx.hash)["smartContractResults"]:
-            if res["sender"] != consts.ELROND_ESDT_SC_ADDR:  # noqa: E501
+            if res["sender"] != consts.ESDT_SC_ADDR:  # noqa: E501
                 continue
 
             self.esdt_hex = str(
@@ -114,12 +114,12 @@ class ElrondHelper:
         self.sender.sync_nonce(self.proxy)
         tx = contract.deploy(
             self.sender,
-            consts.ELROND_CONTRACT_ARGS.format(
+            consts.CONTRACT_ARGS.format(
                 esdt=self.esdt_hex,
                 sender=self.sender.address.hex().replace("0x", "")
             ).split(),
-            consts.ELROND_GAS_PRICE,
-            consts.ELROND_ESDT_GASL,
+            consts.GAS_PRICE,
+            consts.ESDT_GASL,
             value=0,
             chain=str(self.proxy.get_chain_id()),
             version=config.get_tx_version()
@@ -138,10 +138,10 @@ class ElrondHelper:
         tx = Transaction()
         tx.value = str(0)
         tx.sender = self.sender.address.bech32()
-        tx.receiver = consts.ELROND_ESDT_SC_ADDR
-        tx.gasPrice = consts.ELROND_GAS_PRICE
-        tx.gasLimit = consts.ELROND_ESDT_GASL
-        tx.data = consts.ELROND_SETROLE_DATA.format(
+        tx.receiver = consts.ESDT_SC_ADDR
+        tx.gasPrice = consts.GAS_PRICE
+        tx.gasLimit = consts.ESDT_GASL
+        tx.data = consts.SETROLE_DATA.format(
             esdt=self.esdt_hex,
             sc_addr=self.contract.address.hex().replace("0x", "")
         )
@@ -159,7 +159,7 @@ class ElrondHelper:
 
     def check_esdt_bal(self, bch32_addr: str) -> Optional[int]:
         try:
-            uri = consts.ELROND_ESDT_BAL_URI.format(
+            uri = consts.ESDT_BAL_URI.format(
                 proxy=self.proxy_uri,
                 addr=bch32_addr,
                 token=self.esdt_str
@@ -196,8 +196,8 @@ class ElrondHelper:
                 f'0x{bytes("withdraw", "ascii").hex()}',
                 f'0x{bytes(to, "ascii").hex()}'
             ],
-            gas_price=consts.ELROND_GAS_PRICE,
-            gas_limit=consts.ELROND_ESDT_GASL,
+            gas_price=consts.GAS_PRICE,
+            gas_limit=consts.ESDT_GASL,
             chain=str(self.proxy.get_chain_id()),
             version=config.get_tx_version()
         )
@@ -217,8 +217,8 @@ class ElrondHelper:
             arguments=[
                 f"0x{bytes(to, 'ascii').hex()}"
             ],
-            gas_price=consts.ELROND_GAS_PRICE,
-            gas_limit=consts.ELROND_ESDT_GASL,
+            gas_price=consts.GAS_PRICE,
+            gas_limit=consts.ESDT_GASL,
             chain=str(self.proxy.get_chain_id()),
             version=config.get_tx_version()
         )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from substrateinterface.exceptions import ExtrinsicFailedException
 from config import PolkadotConfig
-import consts
+import consts.polkadot as consts
 import subprocess
 
 from pathlib import Path
@@ -54,14 +54,14 @@ class PolkadotHelper:
     def erc20_transfer_ownership(self, addr: str) -> ContractExecutionReceipt:
         dry = self.erc20.read(
             self.sender,
-            consts.INK_EGLD_NEW_OWNER_CALL,
+            consts.ERC20_NEW_OWNER_CALL,
             args={'owner': addr},
             value=0
         )
 
         return self.erc20.exec(
             self.sender,
-            consts.INK_EGLD_NEW_OWNER_CALL,
+            consts.ERC20_NEW_OWNER_CALL,
             args={'owner': addr},
             value=0,
             gas_limit=cast(int, dry.gas_consumed)
@@ -74,7 +74,7 @@ class PolkadotHelper:
             cwd=self.erc20_project
         )
 
-        target = Path(consts.POLKADOT_OUT_DIR.format(
+        target = Path(consts.OUT_DIR.format(
             project=self.erc20_project
         ))
         code = ContractCode.create_from_contract_files(
@@ -88,8 +88,8 @@ class PolkadotHelper:
                 keypair=self.sender,
                 constructor="new",
                 upload_code=True,
-                endowment=consts.POLKADOT_FREEZER_ENDOW,
-                gas_limit=consts.POLKADOT_DEPLOY_GASL,
+                endowment=consts.FREEZER_ENDOW,
+                gas_limit=consts.DEPLOY_GASL,
                 args={"initial_supply": 1000}
             )
         except ExtrinsicFailedException as e:
@@ -107,7 +107,7 @@ class PolkadotHelper:
             cwd=self.freezer_project
         )
 
-        target = Path(consts.POLKADOT_OUT_DIR.format(
+        target = Path(consts.OUT_DIR.format(
             project=self.freezer_project
         ))
         code = ContractCode.create_from_contract_files(
@@ -121,8 +121,8 @@ class PolkadotHelper:
                 keypair=self.sender,
                 constructor="new",
                 upload_code=True,
-                endowment=consts.POLKADOT_FREEZER_ENDOW,
-                gas_limit=consts.POLKADOT_DEPLOY_GASL,
+                endowment=consts.FREEZER_ENDOW,
+                gas_limit=consts.DEPLOY_GASL,
                 args={"erc20_addr": self.erc20.contract_address}
             )
         except ExtrinsicFailedException as e:

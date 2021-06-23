@@ -6,7 +6,7 @@ from eth_typing.evm import ChecksumAddress
 from web3.contract import Contract
 from web3.types import TxParams, TxReceipt, Wei
 
-import consts
+import consts.w3 as consts
 import json
 import subprocess
 
@@ -83,7 +83,7 @@ class Web3Helper:
         return self.send_tx_i(self.sender, tx)
 
     def deploy_erc20(self) -> str:
-        contract = Path(consts.WEB3_XPNET_JSON.format(
+        contract = Path(consts.XPNET_JSON.format(
             project=self.project
         ))
 
@@ -92,7 +92,7 @@ class Web3Helper:
         return str(self.xpnet.address)
 
     def deploy_minter(self) -> str:
-        contract = Path(consts.WEB3_MINTER_JSON.format(
+        contract = Path(consts.MINTER_JSON.format(
             project=self.project
         ))
 

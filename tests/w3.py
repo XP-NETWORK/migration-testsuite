@@ -6,8 +6,8 @@ from substrateinterface.base import Keypair
 
 from web3.main import Web3
 
-from polkadot import PolkadotHelper
-from web3_h import Web3Helper
+from chains.polkadot import PolkadotHelper
+from chains.web3_h import Web3Helper
 
 
 def wait_erc20_bal_added(

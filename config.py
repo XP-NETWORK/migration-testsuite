@@ -1,4 +1,4 @@
-import consts
+import consts.common as consts
 
 from dataclasses import dataclass, field
 from os.path import abspath

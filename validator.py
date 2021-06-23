@@ -1,7 +1,7 @@
 import atexit
 import json
 from typing import Dict
-import consts
+import consts.common as consts
 import subprocess
 import time
 
