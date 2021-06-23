@@ -20,7 +20,7 @@ def init_fastapi(app: FastAPI, helper: Helper, router: APIRouter) -> None:
     app.include_router(router)
 
 
-def main() -> None:
+def setup_app() -> FastAPI:
     config = Config()
 
     app = FastAPI()
@@ -32,15 +32,16 @@ def main() -> None:
         polka = PolkadotHelper.setup(config.polkadot, "./workaround_w3.json")
         init_fastapi(app, setup_web3(polka, config), w3.router)
     else:
-        print("Invalid Chain in Config!")
-        return
+        raise Exception("Invalid Chain in Config!")
 
     deps.inject(app, PolkadotHelper, polka)
     app.include_router(common.router)
 
+    return app
 
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        exit(0)
+
+try:
+    app = setup_app()
+    print(app.openapi())
+except KeyboardInterrupt:
+    exit(0)

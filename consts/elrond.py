@@ -1,4 +1,3 @@
-ESDT_VALUE = 50000000000000000
 ESDT_SC_ADDR = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"  # noqa: E501
 GAS_PRICE = 1000000000
 ESDT_GASL = 800000000
@@ -8,3 +7,4 @@ TX_URI = "{proxy}/transaction/{tx}?withResults=true"
 ESDT_BAL_URI = "{proxy}/address/{addr}/esdt/{token}"
 CONTRACT_ARGS = "0x{esdt} 1 0x{sender}"
 SETROLE_DATA = "setSpecialRole@{esdt}@{sc_addr}@45534454526F6C654C6F63616C4D696E74@45534454526F6C654C6F63616C4275726E"  # noqa: E501
+OUT_FILE = "{project}/output/elrond-mint-contract.wasm"

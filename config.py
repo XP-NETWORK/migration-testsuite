@@ -37,6 +37,7 @@ class ElrondConfig:
         self.event_rest: Final = str(parser["EVENT_REST"])
         self.sender: Final = abspath(str(parser["SENDER_PEM"]))
         self.project: Final = abspath(str(parser["MINT_PROJECT"]))
+        self.esdt_cost: Final = int(parser["ESDT_VALUE"])
 
 
 class Web3Config:

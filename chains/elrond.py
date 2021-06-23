@@ -1,4 +1,5 @@
 from __future__ import annotations
+import subprocess
 from config import ElrondConfig
 from erdpy.interfaces import IElrondProxy
 import consts.elrond as consts
@@ -13,7 +14,6 @@ from erdpy import config
 from erdpy.proxy import ElrondProxy
 from erdpy.accounts import Account, Address
 from erdpy.contracts import SmartContract
-from erdpy.projects import ProjectRust
 from erdpy.transactions import Transaction
 
 
@@ -51,13 +51,15 @@ class ElrondHelper:
         proxy: str,
         events: str,
         sender_pem: str,
-        project_folder: str
+        project: str,
+        esdt_cost: int
     ):
         self.proxy = ElrondProxy(proxy)
         self.proxy_uri = proxy
         self.event_uri = events
         self.sender = Account(pem_file=sender_pem)
-        self.project = ProjectRust(project_folder)
+        self.project = project
+        self.esdt_cost = esdt_cost
         self.sender.sync_nonce(self.proxy)
 
     @classmethod
@@ -67,7 +69,8 @@ class ElrondHelper:
             config.uri,
             config.event_rest,
             config.sender,
-            config.project
+            config.project,
+            config.esdt_cost
         )
 
         print("Issuing esdt...")
@@ -102,7 +105,7 @@ class ElrondHelper:
 
     def prepare_esdt(self) -> str:
         tx = Transaction()
-        tx.value = str(consts.ESDT_VALUE)
+        tx.value = str(self.esdt_cost)
         tx.sender = self.sender.address.bech32()
         tx.receiver = consts.ESDT_SC_ADDR
         tx.gasPrice = consts.GAS_PRICE
@@ -132,15 +135,20 @@ class ElrondHelper:
 
         return self.esdt_str
 
-    def deploy_sc(self, clean: bool = False) -> Address:
+    def deploy_sc(self) -> Address:
         if not self.esdt_hex:
             raise Exception("Deploy called before prepare_esdt!")
 
-        if clean:
-            self.project.clean()
-        self.project.build()
+        subprocess.run(
+            ["erdpy", "contract", "build"],
+            check=True,
+            cwd=self.project
+        )
 
-        contract = SmartContract(bytecode=self.project.get_bytecode())
+        with open(consts.OUT_FILE.format(project=self.project), 'rb') as ct:
+            bytecode = ct.read()
+
+        contract = SmartContract(bytecode=bytecode.hex())
         self.sender.sync_nonce(self.proxy)
         tx = contract.deploy(
             self.sender,
@@ -155,7 +163,8 @@ class ElrondHelper:
             version=config.get_tx_version()
         )
         tx.send(cast(IElrondProxy, self.proxy))
-        self.wait_transaction_done(tx.hash)
+        tx.send_wait_result(self.proxy, 30)
+        print("Contract tx:", tx.hash)
 
         self.contract = contract
 
@@ -183,7 +192,6 @@ class ElrondHelper:
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
-        self.wait_transaction_done(tx.hash)
 
         return tx
 
@@ -233,7 +241,6 @@ class ElrondHelper:
         )
 
         tx.send(cast(IElrondProxy, self.proxy))
-        self.wait_transaction_done(tx.hash)
 
         return tx
 
@@ -254,6 +261,5 @@ class ElrondHelper:
         )
 
         tx.send(cast(IElrondProxy, self.proxy))
-        self.wait_transaction_done(tx.hash)
 
         return tx
