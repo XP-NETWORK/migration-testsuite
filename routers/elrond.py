@@ -29,14 +29,17 @@ def filter_event_id(res: List[Dict[str, Any]]) -> int:
         if int(r["nonce"]) == 0:
             continue
 
-        return int(str(r["data"]).split("@")[-1][1:])
+        try:
+            return int(str(r["data"]).split("@")[-1][1:])
+        except Exception:
+            continue
 
     raise Exception("invalid res:", res)
 
 
-async def emit_event(uri: str, ident: str):
+async def emit_event(uri: str, ident: int):
     async with httpx.AsyncClient() as req:
-        await req.post(f"{uri}/event/tranfer", headers={"id": ident})
+        await req.post(f"{uri}/event/transfer", headers={"id": str(ident)})
 
 
 @router.post("/xpnet/withdraw")

@@ -7,6 +7,7 @@ from chains.polkadot import PolkadotHelper
 from config import Config
 from setup import setup_elrd, setup_web3
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from routers import common, elrond, w3
 
@@ -42,6 +43,13 @@ def setup_app() -> FastAPI:
 
 try:
     app = setup_app()
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     print(app.openapi())
 except KeyboardInterrupt:
     exit(0)
