@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Type
+from typing import Any, Dict, Type
 from eth_account.account import Account, LocalAccount
 from eth_typing.evm import ChecksumAddress
 
@@ -26,6 +26,38 @@ class Web3Helper:
         self.w3 = Web3(Web3.WebsocketProvider(provider))
         self.project = project_folder
         self.sender: LocalAccount = Account.from_key(sender)
+
+    def cache_dict(self) -> Dict[str, str]:
+        res = dict()
+        res["erc20_addr"] = self.xpnet.address.lower()
+        res["erc20_abi"] = json.dumps(self.xpnet.abi)
+        res["minter_addr"] = self.minter.address.lower()
+        res["minter_abi"] = json.dumps(self.minter.abi)
+
+        return res
+
+    @classmethod
+    def load_cache(cls, config: Web3Config,
+                   cache: Dict[str, str]) -> Web3Helper:
+        w3 = cls(
+            config.uri,
+            config.sender,
+            config.project
+        )
+
+        xpaddr = Web3.toChecksumAddress(cache["erc20_addr"])
+        w3.xpnet = w3.w3.eth.contract(
+            address=xpaddr,
+            abi=json.loads(cache["erc20_abi"])
+        )
+
+        minteraddr = Web3.toChecksumAddress(cache["minter_addr"])
+        w3.minter = w3.w3.eth.contract(
+            address=minteraddr,
+            abi=json.loads(cache["minter_abi"])
+        )
+
+        return w3
 
     @classmethod
     def setup(cls, config: Web3Config) -> Web3Helper:
@@ -123,7 +155,7 @@ class Web3Helper:
         value: int
     ) -> TxReceipt:
         call = self.minter.functions.withdraw(
-            destination, value=value
+            destination, value=Web3.toWei(value, 'wei')
         ).buildTransaction()
 
         return self.send_tx_i(sender, call)

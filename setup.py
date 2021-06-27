@@ -70,7 +70,12 @@ def load_or_setup(
 def setup_web3(polka: PolkadotHelper, config: Config) -> Web3Helper:
     validator = ValidatorHelper(config.validator.project)
     print()
-    w3 = Web3Helper.setup(config.web3)
+    w3 = load_or_setup(
+        config.web3,
+        consts.CACHE_WEB3,
+        Web3Helper.setup,
+        Web3Helper.load_cache, Web3Helper.cache_dict
+    )
     print()
 
     print("dumping validator config...")
