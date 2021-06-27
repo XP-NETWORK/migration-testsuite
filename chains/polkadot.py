@@ -24,6 +24,7 @@ class PolkadotHelper:
         self.substrate = SubstrateInterface(
             url=provider,
             ss58_format=42,
+            type_registry_preset='default'
         )
         self.freezer_project = freezer_project
         self.erc20_project = erc20_project
