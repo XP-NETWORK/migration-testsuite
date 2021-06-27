@@ -8,7 +8,7 @@ import time
 import itertools
 import requests
 
-from typing import Any, Optional, Tuple, cast
+from typing import Any, Dict, Optional, Tuple, cast
 
 from erdpy import config
 from erdpy.proxy import ElrondProxy
@@ -40,7 +40,7 @@ def account(pem_data: str) -> Account:
     acc = Account()
     seed, pub = parse_pem(pem_data)
     acc.private_key_seed = seed.hex()
-    acc.address = Address(pub)
+    acc.address = Address(pub)  # type: ignore
 
     return acc
 
@@ -61,6 +61,29 @@ class ElrondHelper:
         self.project = project
         self.esdt_cost = esdt_cost
         self.sender.sync_nonce(self.proxy)
+
+    def cache_dict(self) -> Dict[str, str]:
+        res = dict()
+        res["esdt_str"] = self.esdt_str
+        res["contract_addr"] = self.contract.address.bech32()
+
+        return res
+
+    @classmethod
+    def load_cache(cls, config: ElrondConfig,
+                   cache: Dict[str, str]) -> ElrondHelper:
+        elrd = cls(
+            config.uri,
+            config.event_rest,
+            config.sender,
+            config.project,
+            config.esdt_cost
+        )
+
+        elrd.esdt_str = cache["esdt_str"]
+        elrd.contract = SmartContract(address=cache["contract_addr"])  # type: ignore # noqa: E501
+
+        return elrd
 
     @classmethod
     def setup(cls, config: ElrondConfig) -> ElrondHelper:
@@ -104,14 +127,14 @@ class ElrondHelper:
             return res
 
     def prepare_esdt(self) -> str:
-        tx = Transaction()
+        tx = Transaction()  # type: ignore
         tx.value = str(self.esdt_cost)
         tx.sender = self.sender.address.bech32()
         tx.receiver = consts.ESDT_SC_ADDR
         tx.gasPrice = consts.GAS_PRICE
         tx.gasLimit = consts.ESDT_GASL
         tx.data = consts.ESDT_ISSUE_DATA
-        tx.chainID = str(self.proxy.get_chain_id())
+        tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
         tx.version = config.get_tx_version()
 
         self.sender.sync_nonce(self.proxy)
@@ -132,6 +155,8 @@ class ElrondHelper:
             break
 
         self.esdt_str = bytes.fromhex(self.esdt_hex).decode("utf-8")
+        if "out of funds" in self.esdt_str:
+            raise Exception("Invalid ESDT Issuance value!")
 
         return self.esdt_str
 
@@ -148,7 +173,7 @@ class ElrondHelper:
         with open(consts.OUT_FILE.format(project=self.project), 'rb') as ct:
             bytecode = ct.read()
 
-        contract = SmartContract(bytecode=bytecode.hex())
+        contract = SmartContract(bytecode=bytecode.hex())  # type: ignore
         self.sender.sync_nonce(self.proxy)
         tx = contract.deploy(
             self.sender,
@@ -159,11 +184,11 @@ class ElrondHelper:
             consts.GAS_PRICE,
             consts.ESDT_GASL,
             value=0,
-            chain=str(self.proxy.get_chain_id()),
+            chain=str(self.proxy.get_chain_id()),  # type: ignore
             version=config.get_tx_version()
         )
         tx.send(cast(IElrondProxy, self.proxy))
-        tx.send_wait_result(self.proxy, 30)
+        tx.send_wait_result(self.proxy, 30)  # type: ignore
         print("Contract tx:", tx.hash)
 
         self.contract = contract
@@ -174,7 +199,7 @@ class ElrondHelper:
         if not self.contract:
             raise Exception("Setup SC called before deploy!")
 
-        tx = Transaction()
+        tx = Transaction()  # type: ignore
         tx.value = str(0)
         tx.sender = self.sender.address.bech32()
         tx.receiver = consts.ESDT_SC_ADDR
@@ -184,7 +209,7 @@ class ElrondHelper:
             esdt=self.esdt_hex,
             sc_addr=self.contract.address.hex().replace("0x", "")
         )
-        tx.chainID = str(self.proxy.get_chain_id())
+        tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
         tx.version = config.get_tx_version()
 
         self.sender.sync_nonce(self.proxy)
@@ -236,7 +261,7 @@ class ElrondHelper:
             ],
             gas_price=consts.GAS_PRICE,
             gas_limit=consts.ESDT_GASL,
-            chain=str(self.proxy.get_chain_id()),
+            chain=str(self.proxy.get_chain_id()),  # type: ignore
             version=config.get_tx_version()
         )
 
@@ -256,7 +281,7 @@ class ElrondHelper:
             ],
             gas_price=consts.GAS_PRICE,
             gas_limit=consts.ESDT_GASL,
-            chain=str(self.proxy.get_chain_id()),
+            chain=str(self.proxy.get_chain_id()),  # type: ignore
             version=config.get_tx_version()
         )
 

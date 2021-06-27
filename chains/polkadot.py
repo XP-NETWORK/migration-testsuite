@@ -6,10 +6,12 @@ import consts.polkadot as consts
 import subprocess
 
 from pathlib import Path
-from typing import cast
+from typing import Dict, Tuple, cast
 
 from substrateinterface import SubstrateInterface, Keypair
-from substrateinterface.contracts import ContractCode, ContractExecutionReceipt
+from substrateinterface.contracts import (
+    ContractCode, ContractExecutionReceipt, ContractInstance
+)
 
 
 class PolkadotHelper:
@@ -22,11 +24,38 @@ class PolkadotHelper:
         self.substrate = SubstrateInterface(
             url=provider,
             ss58_format=42,
-            type_registry_preset='default'
         )
         self.freezer_project = freezer_project
         self.erc20_project = erc20_project
         self.sender = Keypair.create_from_uri(consts.ALICE_URI)
+
+    def cache_dict(self) -> Dict[str, str]:
+        res = dict()
+        res["erc20_addr"] = self.erc20.contract_address
+        res["freezer_addr"] = self.contract.contract_address
+
+        return res
+
+    @classmethod
+    def load_cache(cls, config: PolkadotConfig,
+                   freezer_abi: str,
+                   cache: Dict[str, str]) -> PolkadotHelper:
+        polka = cls(config.uri, config.freezer_project, config.erc20_project)
+
+        _, metaerc20 = polka.build_contract(polka.erc20_project)
+        polka.erc20 = ContractInstance.create_from_address(
+            contract_address=cache["erc20_addr"],
+            metadata_file=metaerc20.as_posix(),
+            substrate=polka.substrate
+        )
+
+        polka.contract = ContractInstance.create_from_address(
+            contract_address=cache["freezer_addr"],
+            metadata_file=freezer_abi,
+            substrate=polka.substrate
+        )
+
+        return polka
 
     @classmethod
     def setup(cls, config: PolkadotConfig, freezer_abi: str) -> PolkadotHelper:
@@ -51,6 +80,20 @@ class PolkadotHelper:
 
         return polka
 
+    # WASM, Metadata
+    def build_contract(self, path: str) -> Tuple[Path, Path]:
+        subprocess.run(
+            ["cargo", "+nightly", "contract", "build"],
+            check=True,
+            cwd=path
+        )
+
+        target = Path(consts.OUT_DIR.format(
+            project=path
+        ))
+
+        return (next(target.glob("*.wasm")), target.joinpath("metadata.json"))
+
     def erc20_transfer_ownership(self, addr: str) -> ContractExecutionReceipt:
         dry = self.erc20.read(
             self.sender,
@@ -68,18 +111,13 @@ class PolkadotHelper:
         )
 
     def deploy_erc20(self) -> str:
-        subprocess.run(
-            ["cargo", "+nightly", "contract", "build"],
-            check=True,
-            cwd=self.erc20_project
+        wasm_file, metadata_file = self.build_contract(
+            self.erc20_project
         )
 
-        target = Path(consts.OUT_DIR.format(
-            project=self.erc20_project
-        ))
         code = ContractCode.create_from_contract_files(
-            wasm_file=list(target.glob("*.wasm"))[0].as_posix(),
-            metadata_file=target.joinpath("metadata.json").as_posix(),
+            wasm_file=wasm_file.as_posix(),
+            metadata_file=metadata_file.as_posix(),
             substrate=self.substrate
         )
 
@@ -101,17 +139,10 @@ class PolkadotHelper:
         return str(self.erc20.contract_address)
 
     def deploy_sc(self, abi: str) -> str:
-        subprocess.run(
-            ["cargo", "+nightly", "contract", "build"],
-            check=True,
-            cwd=self.freezer_project
-        )
+        wasm_file, _ = self.build_contract(self.freezer_project)
 
-        target = Path(consts.OUT_DIR.format(
-            project=self.freezer_project
-        ))
         code = ContractCode.create_from_contract_files(
-            wasm_file=list(target.glob("*.wasm"))[0].as_posix(),
+            wasm_file=wasm_file.as_posix(),
             metadata_file=abi,
             substrate=self.substrate
         )

@@ -1,3 +1,4 @@
+from consts import common as consts
 from typing import TypeVar
 
 from fastapi.routing import APIRouter
@@ -5,7 +6,7 @@ from chains.elrond import ElrondHelper
 from chains.web3_h import Web3Helper
 from chains.polkadot import PolkadotHelper
 from config import Config
-from setup import setup_elrd, setup_web3
+from setup import setup_elrd, setup_polkadot, setup_web3
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -27,10 +28,14 @@ def setup_app() -> FastAPI:
     app = FastAPI()
 
     if config.rest.chain == "ELROND":
-        polka = PolkadotHelper.setup(config.polkadot, "./workaround.json")
+        polka = setup_polkadot(
+            config.polkadot, "./workaround.json", consts.CACHE_POLKADOT_ELRD
+        )
         init_fastapi(app, setup_elrd(polka, config), elrond.router)
     elif config.rest.chain == "HECO":
-        polka = PolkadotHelper.setup(config.polkadot, "./workaround_w3.json")
+        polka = setup_polkadot(
+            config.polkadot, "./workaround_w3.json", consts.CACHE_POLKADOT_W3
+        )
         init_fastapi(app, setup_web3(polka, config), w3.router)
     else:
         raise Exception("Invalid Chain in Config!")
