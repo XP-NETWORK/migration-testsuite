@@ -156,7 +156,9 @@ class Web3Helper:
     ) -> TxReceipt:
         call = self.minter.functions.withdraw(
             destination, value=Web3.toWei(value, 'wei')
-        ).buildTransaction()
+        ).buildTransaction({
+            'gas': Wei(70000)
+        })
 
         return self.send_tx_i(sender, call)
 
