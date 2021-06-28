@@ -81,6 +81,7 @@ class ElrondHelper:
         )
 
         elrd.esdt_str = cache["esdt_str"]
+        elrd.esdt_hex = bytes(elrd.esdt_str, 'utf-8').hex()
         elrd.contract = SmartContract(address=cache["contract_addr"])  # type: ignore # noqa: E501
 
         return elrd
