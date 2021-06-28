@@ -29,8 +29,12 @@ def filter_event_id(res: List[Dict[str, Any]]) -> int:
         if int(r["nonce"]) == 0:
             continue
 
+        dat = str(r["data"]).split("@")
+        if dat[0] != '' or dat[1] != "6f6b" or len(dat) != 3:
+            continue
+
         try:
-            return int(str(r["data"]).split("@")[-1][1:])
+            return int(dat[-1], 16)
         except Exception:
             continue
 
