@@ -23,7 +23,7 @@ class Web3Helper:
         sender: str,
         project_folder: str,
     ):
-        self.w3 = Web3(Web3.WebsocketProvider(provider))
+        self.w3 = Web3(Web3.HTTPProvider(provider))
         self.project = project_folder
         self.sender: LocalAccount = Account.from_key(sender)
 
