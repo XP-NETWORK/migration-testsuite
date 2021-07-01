@@ -54,8 +54,7 @@ async def withdraw_xpnet_e2p(req: Request,
     sender = elrond.account(data.pem)
     tx = elrd.unfreeze(sender, data.destination, data.value)
     event = filter_event_id(
-        tx.send_wait_result(elrd.proxy,
-                            30)["smartContractResults"]  # type: ignore
+        elrd.wait_transaction_done(tx.hash)["smartContractResults"]  # type: ignore
     )
     await emit_event(elrd.event_uri, event)
 
@@ -70,8 +69,7 @@ async def transfer_egld_e2p(req: Request,
     sender = elrond.account(data.pem)
     tx = elrd.send_tokens(sender, data.destination, data.value)
     event = filter_event_id(
-        tx.send_wait_result(elrd.proxy,
-                            30)["smartContractResults"]  # type: ignore
+        elrd.wait_transaction_done(tx.hash)["smartContractResults"]  # type: ignore
     )
     await emit_event(elrd.event_uri, event)
 
