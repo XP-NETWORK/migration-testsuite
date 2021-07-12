@@ -65,6 +65,7 @@ class ElrondHelper:
     def cache_dict(self) -> Dict[str, str]:
         res = dict()
         res["esdt_str"] = self.esdt_str
+        res["esdt_nft_str"] = self.esdt_nft_str
         res["contract_addr"] = self.contract.address.bech32()
 
         return res
@@ -82,6 +83,8 @@ class ElrondHelper:
 
         elrd.esdt_str = cache["esdt_str"]
         elrd.esdt_hex = bytes(elrd.esdt_str, 'utf-8').hex()
+        elrd.esdt_nft_str = cache["esdt_nft_str"]
+        elrd.esdt_nft_hex = bytes(elrd.esdt_nft_str, 'utf-8').hex()
         elrd.contract = SmartContract(address=cache["contract_addr"])  # type: ignore # noqa: E501
 
         return elrd
@@ -100,11 +103,26 @@ class ElrondHelper:
         print("Issuing esdt...")
         print(f"Issued esdt: {elrd.prepare_esdt()}")
 
+        print("Issuing nft esdt...")
+        print(f"Issued nft esdt: {elrd.prepare_esdt_nft()}")
+
         print("deplyoing minter...")
         print(f"deployed contract: {elrd.deploy_sc().bech32()}")
 
         print("setting up contract perms...")
-        print(f"perm setup done! tx: {elrd.setup_sc_perms().hash}")
+        esdt_data = consts.SETROLE_DATA.format(
+            esdt=elrd.esdt_hex,
+            sc_addr=elrd.contract.address.hex().replace("0x", "")
+        )
+        print(f"esdt perm setup done! tx: \
+              {elrd.setup_sc_perms(esdt_data).hash}")
+
+        esdt_nft_data = consts.SETROLE_NFT_DATA.format(
+            esdt=elrd.esdt_nft_hex,
+            sc_addr=elrd.contract.address.hex().replace("0x", "")
+        )
+        print(f"esdt nft perm setup done! tx: \
+              {elrd.setup_sc_perms(esdt_nft_data).hash}")
 
         return elrd
 
@@ -161,6 +179,40 @@ class ElrondHelper:
 
         return self.esdt_str
 
+    def prepare_esdt_nft(self) -> str:
+        tx = Transaction()  # type: ignore
+        tx.value = str(self.esdt_cost)
+        tx.sender = self.sender.address.bech32()
+        tx.receiver = consts.ESDT_SC_ADDR
+        tx.gasPrice = consts.GAS_PRICE
+        tx.gasLimit = consts.ESDT_GASL
+        tx.data = consts.ESDT_NFT_ISSUE_DATA
+        tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
+        tx.version = config.get_tx_version()
+
+        self.sender.sync_nonce(self.proxy)
+        tx.nonce = self.sender.nonce
+
+        tx.sign(self.sender)
+        tx.send(cast(IElrondProxy, self.proxy))
+        for res in self.wait_transaction_done(tx.hash)["smartContractResults"]:
+            if res["sender"] != consts.ESDT_SC_ADDR:  # noqa: E501
+                continue
+
+            self.esdt_nft_hex = str(
+                res["data"]
+            ).split("@")[1]
+            if len(self.esdt_nft_hex) < len(consts.ESDT_NFT_IDENT_HEX):
+                continue
+
+            break
+
+        self.esdt_nft_str = bytes.fromhex(self.esdt_nft_hex).decode('utf-8')
+        if "out of funds" in self.esdt_nft_str:
+            raise Exception("Invalid ESDT Issuance value!")
+
+        return self.esdt_nft_str
+
     def deploy_sc(self) -> Address:
         if not self.esdt_hex:
             raise Exception("Deploy called before prepare_esdt!")
@@ -180,6 +232,7 @@ class ElrondHelper:
             self.sender,
             consts.CONTRACT_ARGS.format(
                 esdt=self.esdt_hex,
+                esdt_nft=self.esdt_nft_hex,
                 sender=self.sender.address.hex().replace("0x", "")
             ).split(),
             consts.GAS_PRICE,
@@ -196,7 +249,7 @@ class ElrondHelper:
 
         return contract.address
 
-    def setup_sc_perms(self) -> Transaction:
+    def setup_sc_perms(self, data: str) -> Transaction:
         if not self.contract:
             raise Exception("Setup SC called before deploy!")
 
@@ -206,10 +259,7 @@ class ElrondHelper:
         tx.receiver = consts.ESDT_SC_ADDR
         tx.gasPrice = consts.GAS_PRICE
         tx.gasLimit = consts.ESDT_GASL
-        tx.data = consts.SETROLE_DATA.format(
-            esdt=self.esdt_hex,
-            sc_addr=self.contract.address.hex().replace("0x", "")
-        )
+        tx.data = data
         tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
         tx.version = config.get_tx_version()
 
