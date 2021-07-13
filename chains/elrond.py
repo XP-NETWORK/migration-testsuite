@@ -114,15 +114,13 @@ class ElrondHelper:
             esdt=elrd.esdt_hex,
             sc_addr=elrd.contract.address.hex().replace("0x", "")
         )
-        print(f"esdt perm setup done! tx: \
-              {elrd.setup_sc_perms(esdt_data).hash}")
+        print(f"esdt perm setup done! tx: {elrd.setup_sc_perms(esdt_data).hash}")  # noqa: E501
 
         esdt_nft_data = consts.SETROLE_NFT_DATA.format(
             esdt=elrd.esdt_nft_hex,
             sc_addr=elrd.contract.address.hex().replace("0x", "")
         )
-        print(f"esdt nft perm setup done! tx: \
-              {elrd.setup_sc_perms(esdt_nft_data).hash}")
+        print(f"esdt nft perm setup done! tx: {elrd.setup_sc_perms(esdt_nft_data).hash}")  # noqa: E501
 
         return elrd
 
@@ -195,14 +193,15 @@ class ElrondHelper:
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
+        print(tx.hash)
         for res in self.wait_transaction_done(tx.hash)["smartContractResults"]:
             if res["sender"] != consts.ESDT_SC_ADDR:  # noqa: E501
                 continue
 
             self.esdt_nft_hex = str(
                 res["data"]
-            ).split("@")[1]
-            if len(self.esdt_nft_hex) < len(consts.ESDT_NFT_IDENT_HEX):
+            ).split("@")[-1]
+            if len(self.esdt_nft_hex) < len("XPNFT")*2:
                 continue
 
             break
@@ -268,6 +267,8 @@ class ElrondHelper:
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
+
+        self.wait_transaction_done(tx.hash)
 
         return tx
 
