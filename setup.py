@@ -117,6 +117,6 @@ def setup_elrd(polka: PolkadotHelper, config: Config) -> ElrondHelper:
     )
     validator.dump_config(dataclasses.asdict(rtconf))
     print("starting validator...")
-    validator.spawn()
+    #validator.spawn()
 
     return elrd

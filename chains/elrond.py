@@ -106,9 +106,11 @@ class ElrondHelper:
         print("Issuing nft esdt...")
         print(f"Issued nft esdt: {elrd.prepare_esdt_nft()}")
 
+        time.sleep(25)
         print("deplyoing minter...")
         print(f"deployed contract: {elrd.deploy_sc().bech32()}")
 
+        time.sleep(10)
         print("setting up contract perms...")
         esdt_data = consts.SETROLE_DATA.format(
             esdt=elrd.esdt_hex,
@@ -116,6 +118,7 @@ class ElrondHelper:
         )
         print(f"esdt perm setup done! tx: {elrd.setup_sc_perms(esdt_data).hash}")  # noqa: E501
 
+        time.sleep(10)
         esdt_nft_data = consts.SETROLE_NFT_DATA.format(
             esdt=elrd.esdt_nft_hex,
             sc_addr=elrd.contract.address.hex().replace("0x", "")
@@ -125,10 +128,13 @@ class ElrondHelper:
         return elrd
 
     def wait_transaction_done(self, tx_hash: str) -> Any:
-        time.sleep(3)
         uri = consts.TX_URI.format(proxy=self.proxy_uri, tx=tx_hash)
-        while data := requests.get(uri):
+        while True:
+            data = requests.get(uri)
             res = data.json()
+            if res["error"] and res["error"] == "transaction not found":
+                time.sleep(5)
+                continue
             if res["code"] != "successful":
                 raise Exception(f"failed to execute tx: {tx_hash}, \
                                 error: {res['error']}")
@@ -159,13 +165,14 @@ class ElrondHelper:
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
+        time.sleep(10)
         for res in self.wait_transaction_done(tx.hash)["smartContractResults"]:
             if res["sender"] != consts.ESDT_SC_ADDR:  # noqa: E501
                 continue
 
             self.esdt_hex = str(
                 res["data"]
-            ).split("@")[1]
+            ).split("@")[-1]
             if len(self.esdt_hex) < len("XPNET")*2:
                 continue
 
@@ -193,7 +200,7 @@ class ElrondHelper:
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
-        print(tx.hash)
+        time.sleep(10)
         for res in self.wait_transaction_done(tx.hash)["smartContractResults"]:
             if res["sender"] != consts.ESDT_SC_ADDR:  # noqa: E501
                 continue
