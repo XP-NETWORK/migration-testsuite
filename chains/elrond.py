@@ -8,7 +8,7 @@ import time
 import itertools
 import requests
 
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from erdpy import config
 from erdpy.proxy import ElrondProxy
@@ -52,6 +52,7 @@ class ElrondHelper:
         events: str,
         sender_pem: str,
         project: str,
+        swap_project: str,
         esdt_cost: int
     ):
         self.proxy = ElrondProxy(proxy)
@@ -59,14 +60,19 @@ class ElrondHelper:
         self.event_uri = events
         self.sender = Account(pem_file=sender_pem)
         self.project = project
+        self.swap_project = swap_project
         self.esdt_cost = esdt_cost
         self.sender.sync_nonce(self.proxy)
+        self.contract = SmartContract()
+        self.contract_swap = SmartContract()
 
     def cache_dict(self) -> Dict[str, str]:
         res = dict()
         res["esdt_str"] = self.esdt_str
         res["esdt_nft_str"] = self.esdt_nft_str
+        res["esdt_swap_str"] = self.swap_token
         res["contract_addr"] = self.contract.address.bech32()
+        res["contract_swap_addr"] = self.contract_swap.address.bech32()
 
         return res
 
@@ -78,6 +84,7 @@ class ElrondHelper:
             config.event_rest,
             config.sender,
             config.project,
+            config.swap_project,
             config.esdt_cost
         )
 
@@ -85,7 +92,10 @@ class ElrondHelper:
         elrd.esdt_hex = bytes(elrd.esdt_str, 'utf-8').hex()
         elrd.esdt_nft_str = cache["esdt_nft_str"]
         elrd.esdt_nft_hex = bytes(elrd.esdt_nft_str, 'utf-8').hex()
+        elrd.swap_token = cache["esdt_swap_str"]
+        elrd.swap_token_hex = bytes(elrd.swap_token, 'utf-8').hex()
         elrd.contract = SmartContract(address=cache["contract_addr"])  # type: ignore # noqa: E501
+        elrd.contract_swap = SmartContract(address=cache["contract_swap_addr"])  # type: ignore # noqa: E501
 
         return elrd
 
@@ -97,6 +107,7 @@ class ElrondHelper:
             config.event_rest,
             config.sender,
             config.project,
+            config.swap_project,
             config.esdt_cost
         )
 
@@ -106,11 +117,27 @@ class ElrondHelper:
         print("Issuing nft esdt...")
         print(f"Issued nft esdt: {elrd.prepare_esdt_nft()}")
 
-        time.sleep(25)
-        print("deplyoing minter...")
-        print(f"deployed contract: {elrd.deploy_sc().bech32()}")
+        print("deploying egld swap...")
+        elrd.contract_swap = elrd.deploy_sc([], elrd.swap_project)
+        print(f"deployed egld swap contract: \
+{elrd.contract_swap.address.bech32()}")
 
-        time.sleep(10)
+        print("isseing swap esdt")
+        elrd.prepare_egld_swap_esdt()
+        print(f"Issued swap esdt: {elrd.swap_token}")
+
+        print("deplyoing minter...")
+        elrd.contract = elrd.deploy_sc(
+            consts.CONTRACT_ARGS.format(
+                esdt=elrd.esdt_hex,
+                esdt_nft=elrd.esdt_nft_hex,
+                esdt_swap=elrd.swap_token.encode('utf-8').hex(),
+                sender=elrd.sender.address.hex().replace("0x", "")
+            ).split(),
+            elrd.project
+        )
+        print(f"deployed contract: {elrd.contract.address.bech32()}")
+
         print("setting up contract perms...")
         esdt_data = consts.SETROLE_DATA.format(
             esdt=elrd.esdt_hex,
@@ -118,7 +145,6 @@ class ElrondHelper:
         )
         print(f"esdt perm setup done! tx: {elrd.setup_sc_perms(esdt_data).hash}")  # noqa: E501
 
-        time.sleep(10)
         esdt_nft_data = consts.SETROLE_NFT_DATA.format(
             esdt=elrd.esdt_nft_hex,
             sc_addr=elrd.contract.address.hex().replace("0x", "")
@@ -219,14 +245,43 @@ class ElrondHelper:
 
         return self.esdt_nft_str
 
-    def deploy_sc(self) -> Address:
+    def prepare_egld_swap_esdt(self) -> str:
+        tx = self.contract_swap.execute(
+            caller=self.sender,
+            function="issueWrappedEgld",
+            value=self.esdt_cost,
+            arguments=[
+                f"0x{b'WEGLD'.hex()}",
+                f"0x{b'WEGLD'.hex()}",
+                "0x0"
+            ],
+            gas_price=consts.GAS_PRICE,
+            gas_limit=consts.ESDT_GASL,
+            chain=str(self.proxy.get_chain_id()),  # type: ignore
+            version=config.get_tx_version()
+        )
+
+        tx.send(cast(IElrondProxy, self.proxy))
+
+        token = self.contract_swap.query(
+            self.proxy,
+            "getWrappedEgldTokenIdentifier",
+            [],
+        )
+
+        self.swap_token = str(token[0])
+        self.swap_token_hex = self.swap_token.encode('utf-8').hex()
+
+        return self.swap_token
+
+    def deploy_sc(self, init_args: List[str], project: str) -> SmartContract:
         if not self.esdt_hex:
             raise Exception("Deploy called before prepare_esdt!")
 
         subprocess.run(
             ["erdpy", "contract", "build"],
             check=True,
-            cwd=self.project
+            cwd=project
         )
 
         with open(consts.OUT_FILE.format(project=self.project), 'rb') as ct:
@@ -236,11 +291,7 @@ class ElrondHelper:
         self.sender.sync_nonce(self.proxy)
         tx = contract.deploy(
             self.sender,
-            consts.CONTRACT_ARGS.format(
-                esdt=self.esdt_hex,
-                esdt_nft=self.esdt_nft_hex,
-                sender=self.sender.address.hex().replace("0x", "")
-            ).split(),
+            init_args,
             consts.GAS_PRICE,
             consts.ESDT_GASL,
             value=0,
@@ -251,9 +302,7 @@ class ElrondHelper:
         tx.send_wait_result(self.proxy, 30)  # type: ignore
         print("Contract tx:", tx.hash)
 
-        self.contract = contract
-
-        return contract.address
+        return contract
 
     def setup_sc_perms(self, data: str) -> Transaction:
         if not self.contract:
