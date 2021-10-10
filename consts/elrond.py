@@ -10,4 +10,6 @@ ESDT_BAL_URI = "{proxy}/address/{addr}/esdt/{token}"
 CONTRACT_ARGS = "0x{esdt} 0x{esdt_nft} 0x{esdt_swap} 1 0x{sender}"
 SETROLE_DATA = "setSpecialRole@{esdt}@{sc_addr}@45534454526F6C654E4654437265617465@45534454526F6C654E46544275726E@45534454526F6C654E46544164645175616E74697479"  # noqa: E501
 SETROLE_NFT_DATA = "setSpecialRole@{esdt}@{sc_addr}@45534454526F6C654E4654437265617465@45534454526F6C654E46544275726E"  # noqa: E501
-OUT_FILE = "{project}/output/elrond-mint-contract.wasm"
+OUT_FILE = "{project}/output/{contract}"
+CONTRACT_SWAP = "egld-esdt-swap.wasm"
+CONTRACT_MINTER = "elrond-mint-contract.wasm"
