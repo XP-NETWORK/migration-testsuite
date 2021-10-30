@@ -128,13 +128,20 @@ class ElrondHelper:
         elrd.prepare_egld_swap_esdt()
         print(f"Issued swap esdt: {elrd.swap_token}")
 
+        validators = [
+            f"0x{Address(addr).hex()}"
+            for addr in
+            config.validators
+        ]
+
         print("deplyoing minter...")
         elrd.contract = elrd.deploy_sc(
             consts.CONTRACT_ARGS.format(
                 esdt=elrd.esdt_hex,
                 esdt_nft=elrd.esdt_nft_hex,
                 esdt_swap=elrd.swap_token.encode('utf-8').hex(),
-                sender=elrd.sender.address.hex().replace("0x", "")
+                threshold=config.threshold,
+                senders=" ".join(validators)
             ).split(),
             elrd.project,
             consts.CONTRACT_MINTER
@@ -175,7 +182,7 @@ class ElrondHelper:
                 continue
             elif res["status"] != "success":
                 raise Exception(f"failed to execute tx: {tx_hash}, \
-                                status: {res['transaction']['status']}")
+                                status: {res['status']}")
 
             return res
 
