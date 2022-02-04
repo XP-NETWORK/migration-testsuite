@@ -39,8 +39,7 @@ class ElrondConfig:
         self.project: Final = abspath(str(parser["MINT_PROJECT"]))
         self.swap_project: Final = abspath(str(parser["SWAP_PROJECT"]))
         self.esdt_cost: Final = int(parser["ESDT_VALUE"])
-        self.validators: Final = str(parser["VALIDATORS"]).split(",")
-        self.threshold: Final = int(parser["THRESHOLD"])
+        self.frost_pubkey: Final = str(parser["FROST_PUBKEY"])
 
 
 class Web3Config:
