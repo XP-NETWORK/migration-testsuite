@@ -111,9 +111,6 @@ class ElrondHelper:
             config.esdt_cost
         )
 
-        print("Issuing esdt...")
-        print(f"Issued esdt: {elrd.prepare_esdt()}")
-
         print("Issuing nft esdt...")
         print(f"Issued nft esdt: {elrd.prepare_esdt_nft()}")
 
@@ -131,7 +128,6 @@ class ElrondHelper:
         print("deplyoing minter...")
         elrd.contract = elrd.deploy_sc(
             consts.CONTRACT_ARGS.format(
-                esdt=elrd.esdt_hex,
                 esdt_nft=elrd.esdt_nft_hex,
                 esdt_swap=elrd.swap_token.encode('utf-8').hex(),
                 group_key=config.frost_pubkey
@@ -142,12 +138,6 @@ class ElrondHelper:
         print(f"deployed contract: {elrd.contract.address.bech32()}")
 
         print("setting up contract perms...")
-        esdt_data = consts.SETROLE_DATA.format(
-            esdt=elrd.esdt_hex,
-            sc_addr=elrd.contract.address.hex().replace("0x", "")
-        )
-        print(f"esdt perm setup done! tx: {elrd.setup_sc_perms(esdt_data).hash}")  # noqa: E501
-        time.sleep(15)
 
         esdt_nft_data = consts.SETROLE_NFT_DATA.format(
             esdt=elrd.esdt_nft_hex,
@@ -284,8 +274,8 @@ class ElrondHelper:
         return self.swap_token
 
     def deploy_sc(self, init_args: List[str], project: str, sc: str) -> SmartContract:
-        if not self.esdt_hex:
-            raise Exception("Deploy called before prepare_esdt!")
+        if not self.esdt_nft_hex:
+            raise Exception("Deploy called before prepare_esdt_nft!")
 
         subprocess.run(
             ["erdpy", "contract", "build"],
