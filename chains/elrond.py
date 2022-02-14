@@ -128,7 +128,6 @@ class ElrondHelper:
         print("deplyoing minter...")
         elrd.contract = elrd.deploy_sc(
             consts.CONTRACT_ARGS.format(
-                esdt_nft=elrd.esdt_nft_hex,
                 esdt_swap=elrd.swap_token.encode('utf-8').hex(),
                 group_key=config.frost_pubkey
             ).split(),
