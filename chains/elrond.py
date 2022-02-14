@@ -114,13 +114,13 @@ class ElrondHelper:
         print("Issuing nft esdt...")
         print(f"Issued nft esdt: {elrd.prepare_esdt_nft()}")
 
-        time.sleep(10)
+        time.sleep(35)
         print("deploying egld swap...")
         elrd.contract_swap = elrd.deploy_sc([], elrd.swap_project, consts.CONTRACT_SWAP)
         print(f"deployed egld swap contract: \
 {elrd.contract_swap.address.bech32()}")
 
-        time.sleep(10)
+        time.sleep(35)
         print("issuing swap esdt")
         elrd.prepare_egld_swap_esdt()
         print(f"Issued swap esdt: {elrd.swap_token}")
