@@ -114,13 +114,12 @@ class ElrondHelper:
         print("Issuing nft esdt...")
         print(f"Issued nft esdt: {elrd.prepare_esdt_nft()}")
 
-        time.sleep(35)
         print("deploying egld swap...")
         elrd.contract_swap = elrd.deploy_sc([], elrd.swap_project, consts.CONTRACT_SWAP)
         print(f"deployed egld swap contract: \
 {elrd.contract_swap.address.bech32()}")
 
-        time.sleep(35)
+        time.sleep(30)
         print("issuing swap esdt")
         elrd.prepare_egld_swap_esdt()
         print(f"Issued swap esdt: {elrd.swap_token}")
@@ -135,6 +134,7 @@ class ElrondHelper:
             consts.CONTRACT_MINTER
         )
         print(f"deployed contract: {elrd.contract.address.bech32()}")
+        time.sleep(15)
 
         print("setting up contract perms...")
 
@@ -151,7 +151,7 @@ class ElrondHelper:
         while True:
             data = requests.get(uri)
             res = data.json()
-            if res["error"] and res["error"] == "transaction not found":
+            if "error" in res and res["error"] == "transaction not found":
                 time.sleep(5)
                 continue
             if res["code"] != "successful":
@@ -180,8 +180,8 @@ class ElrondHelper:
         tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
         tx.version = config.get_tx_version()
 
-        self.sender.sync_nonce(self.proxy)
         tx.nonce = self.sender.nonce
+        self.sender.nonce += 1
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
@@ -215,8 +215,8 @@ class ElrondHelper:
         tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
         tx.version = config.get_tx_version()
 
-        self.sender.sync_nonce(self.proxy)
         tx.nonce = self.sender.nonce
+        self.sender.nonce += 1
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
@@ -240,7 +240,6 @@ class ElrondHelper:
         return self.esdt_nft_str
 
     def prepare_egld_swap_esdt(self) -> str:
-        self.sender.sync_nonce(self.proxy)
         tx = self.contract_swap.execute(
             caller=self.sender,
             function="issueWrappedEgld",
@@ -257,9 +256,10 @@ class ElrondHelper:
         )
 
         tx.send(cast(IElrondProxy, self.proxy))
-        tx.send_wait_result(self.proxy, 30)
+        self.wait_transaction_done(tx.hash)
+        self.sender.nonce += 1
 
-        time.sleep(5)
+        time.sleep(35)
         token = self.contract_swap.query(
             self.proxy,
             "getWrappedEgldTokenIdentifier",
@@ -286,7 +286,6 @@ class ElrondHelper:
             bytecode = ct.read()
 
         contract = SmartContract(bytecode=bytecode.hex())  # type: ignore
-        self.sender.sync_nonce(self.proxy)
         tx = contract.deploy(
             self.sender,
             init_args,
@@ -297,8 +296,9 @@ class ElrondHelper:
             version=config.get_tx_version()
         )
         tx.send(cast(IElrondProxy, self.proxy))
-        tx.send_wait_result(self.proxy, 30)  # type: ignore
+        self.wait_transaction_done(tx.hash)
         print("Contract tx:", tx.hash)
+        self.sender.nonce += 1
 
         return contract
 
@@ -316,8 +316,8 @@ class ElrondHelper:
         tx.chainID = str(self.proxy.get_chain_id())  # type: ignore
         tx.version = config.get_tx_version()
 
-        self.sender.sync_nonce(self.proxy)
         tx.nonce = self.sender.nonce
+        self.sender.nonce += 1
 
         tx.sign(self.sender)
         tx.send(cast(IElrondProxy, self.proxy))
