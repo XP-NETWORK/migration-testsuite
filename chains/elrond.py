@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from erdpy import config
 from erdpy.proxy import ElrondProxy
 from erdpy.accounts import Account, Address
-from erdpy.contracts import SmartContract
+from erdpy.contracts import CodeMetadata, SmartContract
 from erdpy.transactions import Transaction
 
 
@@ -131,7 +131,8 @@ class ElrondHelper:
                 group_key=config.frost_pubkey
             ).split(),
             elrd.project,
-            consts.CONTRACT_MINTER
+            consts.CONTRACT_MINTER,
+            True
         )
         print(f"deployed contract: {elrd.contract.address.bech32()}")
         time.sleep(15)
@@ -272,7 +273,7 @@ class ElrondHelper:
 
         return self.swap_token
 
-    def deploy_sc(self, init_args: List[str], project: str, sc: str) -> SmartContract:
+    def deploy_sc(self, init_args: List[str], project: str, sc: str, enable_payable = False) -> SmartContract:
         if not self.esdt_nft_hex:
             raise Exception("Deploy called before prepare_esdt_nft!")
 
@@ -285,7 +286,10 @@ class ElrondHelper:
         with open(consts.OUT_FILE.format(project=project, contract=sc), 'rb') as ct:
             bytecode = ct.read()
 
-        contract = SmartContract(bytecode=bytecode.hex())  # type: ignore
+        metadata = CodeMetdata()
+        metadata.payable = enable_payable
+        metadata.payable_by_sc = enable_payable
+        contract = SmartContract(bytecode=bytecode.hex(), metadata)  # type: ignore
         tx = contract.deploy(
             self.sender,
             init_args,
@@ -293,7 +297,8 @@ class ElrondHelper:
             consts.ESDT_GASL,
             value=0,
             chain=str(self.proxy.get_chain_id()),  # type: ignore
-            version=config.get_tx_version()
+            version=config.get_tx_version(),
+            payab
         )
         tx.send(cast(IElrondProxy, self.proxy))
         self.wait_transaction_done(tx.hash)
