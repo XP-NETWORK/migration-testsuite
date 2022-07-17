@@ -248,7 +248,6 @@ class ElrondHelper:
             arguments=[
                 f"0x{b'WEGLD'.hex()}",
                 f"0x{b'WEGLD'.hex()}",
-                1
             ],
             gas_price=consts.GAS_PRICE,
             gas_limit=consts.ESDT_GASL,
@@ -268,6 +267,22 @@ class ElrondHelper:
         )
         print("token is", token)
 
+        tx2 = self.contract_swap.execute(
+            caller=self.sender,
+            function="setLocalRoles",
+            gas_price=consts.GAS_PRICE,
+            gas_limit=consts.ESDT_GASL,
+            chain=str(self.proxy.get_chain_id()), # type: ignore
+            version=config.get_tx_version(),
+            value=0,
+            arguments=[]
+        )
+        tx2.send(cast(IElrondProxy, self.proxy))
+        self.wait_transaction_done(tx2.hash)
+        self.sender.nonce += 1
+
+        print("setted up roles")
+
         self.swap_token = bytearray.fromhex(token[0].hex).decode('utf-8')
         self.swap_token_hex = self.swap_token.encode('utf-8').hex()
 
@@ -286,7 +301,7 @@ class ElrondHelper:
         with open(consts.OUT_FILE.format(project=project, contract=sc), 'rb') as ct:
             bytecode = ct.read()
 
-        metadata = CodeMetdata()
+        metadata = CodeMetadata()
         metadata.payable = enable_payable
         metadata.payable_by_sc = enable_payable
         contract = SmartContract(metadata=metadata, bytecode=bytecode.hex())  # type: ignore
@@ -297,8 +312,7 @@ class ElrondHelper:
             consts.ESDT_GASL,
             value=0,
             chain=str(self.proxy.get_chain_id()),  # type: ignore
-            version=config.get_tx_version(),
-            metadata=metadata
+            version=config.get_tx_version()
         )
         tx.send(cast(IElrondProxy, self.proxy))
         self.wait_transaction_done(tx.hash)
