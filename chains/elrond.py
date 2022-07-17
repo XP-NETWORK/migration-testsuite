@@ -289,7 +289,7 @@ class ElrondHelper:
         metadata = CodeMetdata()
         metadata.payable = enable_payable
         metadata.payable_by_sc = enable_payable
-        contract = SmartContract(metadata, bytecode=bytecode.hex())  # type: ignore
+        contract = SmartContract(metadata=metadata, bytecode=bytecode.hex())  # type: ignore
         tx = contract.deploy(
             self.sender,
             init_args,
@@ -298,7 +298,7 @@ class ElrondHelper:
             value=0,
             chain=str(self.proxy.get_chain_id()),  # type: ignore
             version=config.get_tx_version(),
-            payab
+            metadata=metadata
         )
         tx.send(cast(IElrondProxy, self.proxy))
         self.wait_transaction_done(tx.hash)
