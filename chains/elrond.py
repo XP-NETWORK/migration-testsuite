@@ -289,7 +289,7 @@ class ElrondHelper:
         metadata = CodeMetdata()
         metadata.payable = enable_payable
         metadata.payable_by_sc = enable_payable
-        contract = SmartContract(bytecode=bytecode.hex(), metadata)  # type: ignore
+        contract = SmartContract(metadata, bytecode=bytecode.hex())  # type: ignore
         tx = contract.deploy(
             self.sender,
             init_args,
